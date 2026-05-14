@@ -1,0 +1,16 @@
+.env
+.env.*
+.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+*.keystore
+credentials.json
+token.json
+service-account*.json
+__pycache__/
+.DS_Store
