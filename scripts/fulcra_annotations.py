@@ -15,6 +15,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -115,6 +116,53 @@ def annotation_source_id(annotation: dict[str, Any]) -> str:
     return annotation.get("fulcra_source_id") or f"com.fulcradynamics.annotation.{ann_id}"
 
 
+def is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+    except ValueError:
+        return False
+    return True
+
+
+def get_tag_by_name(name: str) -> dict[str, Any] | None:
+    path = f"/user/v1alpha1/tag/name/{urllib.parse.quote(name, safe='')}"
+    status, body = request("GET", path)
+    if status == 200:
+        return json.loads(body)
+    if status == 404:
+        return None
+    fail(f"Failed to look up tag {name!r}: HTTP {status}: {body[:500]}")
+
+
+def create_tag(name: str) -> dict[str, Any]:
+    status, body = request("POST", "/user/v1alpha1/tag", {"name": name})
+    if status in {200, 201} and body:
+        return json.loads(body)
+    if status in {200, 201, 303}:
+        tag = get_tag_by_name(name)
+        if tag:
+            return tag
+    fail(f"Failed to create tag {name!r}: HTTP {status}: {body[:500]}")
+
+
+def resolve_tags(raw_tags: list[str] | None, create_missing: bool = True) -> list[str]:
+    resolved: list[str] = []
+    for raw in raw_tags or []:
+        tag = raw.strip()
+        if not tag:
+            continue
+        if is_uuid(tag):
+            resolved.append(str(uuid.UUID(tag)))
+            continue
+        found = get_tag_by_name(tag)
+        if not found:
+            if not create_missing:
+                fail(f"No Fulcra tag named {tag!r}; create it first or allow tag creation.")
+            found = create_tag(tag)
+        resolved.append(found["id"])
+    return resolved
+
+
 def normalize_annotation(annotation: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": annotation.get("id"),
@@ -156,7 +204,7 @@ def find_annotation(name: str | None = None, annotation_id: str | None = None) -
 
 
 def create_payload(args: argparse.Namespace) -> dict[str, Any]:
-    tags = args.tag or []
+    tags = resolve_tags(args.tag)
     base = {
         "annotation_type": args.type,
         "name": args.name,
@@ -240,6 +288,7 @@ def record_payload(annotation: dict[str, Any], args: argparse.Namespace) -> dict
             data["value"] = float(args.value)
 
     source_id = annotation_source_id(annotation)
+    tags = resolve_tags(args.tag) if args.tag is not None else (annotation.get("tags") or [])
     return {
         "specversion": 1,
         "data": json.dumps(data),
@@ -247,7 +296,7 @@ def record_payload(annotation: dict[str, Any], args: argparse.Namespace) -> dict
             "data_type": data_type,
             "recorded_at": recorded_at,
             "source": [args.source or DEFAULT_AGENT_SOURCE, source_id],
-            "tags": annotation.get("tags") or [],
+            "tags": tags,
             "content_type": "application/json",
         },
     }
@@ -346,6 +395,7 @@ def main() -> int:
     record.add_argument("--note")
     record.add_argument("--recorded-at")
     record.add_argument("--source")
+    record.add_argument("--tag", action="append")
     record.add_argument("--dry-run", action="store_true")
 
     recent = sub.add_parser("recent")
