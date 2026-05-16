@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import subprocess
 import sys
 import urllib.error
@@ -54,17 +55,8 @@ def access_token() -> str:
     env = os.environ.copy()
     env["HOME"] = DEFAULT_HOME
 
-    candidates = [
-        ["fulcra-api", "auth", "print-access-token"],
-        [
-            "uv",
-            "tool",
-            "run",
-            "git+https://git@github.com/fulcradynamics/fulcra-api-python.git@add-cli",
-            "auth",
-            "print-access-token",
-        ],
-    ]
+    command = os.environ.get("FULCRA_CLI_COMMAND", "fulcra-api")
+    candidates = [[*shlex.split(command), "auth", "print-access-token"]]
     for cmd in candidates:
         try:
             token = subprocess.check_output(

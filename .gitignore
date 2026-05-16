@@ -1,6 +1,14 @@
+__pycache__/
+*.py[cod]
+.DS_Store
 .env
 .env.*
 .secrets
+*.log
+credentials.json
+token.json
+*.token
+*.secret
 *.key
 *.pem
 *.p12
@@ -9,8 +17,4 @@
 id_rsa
 id_ed25519
 *.keystore
-credentials.json
-token.json
 service-account*.json
-__pycache__/
-.DS_Store

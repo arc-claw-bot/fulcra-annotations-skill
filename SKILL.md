@@ -7,6 +7,8 @@ description: Create, list, update, and record Fulcra annotations through the Ful
 
 Use this skill when the user wants an agent to create, record, or verify Fulcra annotations.
 
+Fulcra gives agents and their humans scoped, secure access to read and write real-world context and shared human/agent memory: attention, events, location, calendar, health, wearables, and other streams. Use this skill for the write side of that loop: creating reusable annotation definitions and recording user-approved moments or values.
+
 Agents should use the bundled script first. Do not hand-write curl calls unless the script is missing a required capability, because the script keeps tokens out of chat, builds the Fulcra ingest payload consistently, and performs readback verification.
 
 ## Core Concepts
@@ -34,13 +36,12 @@ Agents should use the bundled script first. Do not hand-write curl calls unless 
 The script gets auth in this order:
 
 1. `FULCRA_ACCESS_TOKEN` environment variable.
-2. `fulcra-api auth print-access-token` from PATH.
-3. `uv tool run 'git+https://git@github.com/fulcradynamics/fulcra-api-python.git@add-cli' auth print-access-token`.
+2. `fulcra-api auth print-access-token` from PATH, or the command in `FULCRA_CLI_COMMAND`.
 
-If using the beta CLI, authenticate first:
+Authenticate first:
 
 ```bash
-uv tool run 'git+https://git@github.com/fulcradynamics/fulcra-api-python.git@add-cli' auth login
+fulcra-api auth login
 ```
 
 Set `FULCRA_HOME=/path/to/home` if credentials are not under the process `HOME`.
