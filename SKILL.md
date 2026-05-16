@@ -26,7 +26,7 @@ Agents should use the bundled script first. Do not hand-write curl calls unless 
 ## Safety Rules
 
 - Never print access tokens, refresh tokens, raw private Fulcra records, credential files, or direct capability URLs in chat.
-- Device auth URLs and user codes are allowed only when the intended user needs to approve Fulcra access from another device; send them only in the current trusted/private user channel.
+- Device auth URLs and user codes are allowed only when the intended user needs to approve Fulcra access from another device; send them only through the active trusted user channel.
 - Ask before deleting or updating an existing annotation definition.
 - For public demos, use synthetic annotation names/values unless the user explicitly approves real data.
 - Do not claim a write succeeded from HTTP status alone. Check the script result and verify readback.
@@ -45,7 +45,7 @@ Authenticate first:
 fulcra-api auth login
 ```
 
-For remote chat agents, keep the CLI running, send the printed device authorization URL and code to the intended user, and wait for approval. The user can open the URL from Discord, Telegram, Signal, mobile, or any browser. After approval, verify auth with a non-token command such as `fulcra-api user-info`; do not paste tokens into chat.
+For remote agents, keep the CLI running, send the printed device authorization URL and code to the intended user through the active trusted user channel, and wait for approval. The user can open the URL from any browser on any device. After approval, verify auth with a non-token command such as `fulcra-api user-info`; do not paste tokens into chat.
 
 Set `FULCRA_HOME=/path/to/home` if credentials are not under the process `HOME`.
 

@@ -19,7 +19,7 @@ Fulcra gives agents and their humans scoped, secure access to read and write rea
 - Fulcra API access for the target user.
 - `fulcra-api auth login` completed, or `FULCRA_ACCESS_TOKEN` supplied by a trusted secret manager.
 
-For remote chat agents, run `fulcra-api auth login` on the agent host, keep it polling, and send only the printed device authorization URL and user code to the intended user. The user can approve from Discord, Telegram, Signal, mobile, or any browser. Never send access tokens or credential files.
+For remote agents, run `fulcra-api auth login` on the agent host, keep it polling, and send only the printed device authorization URL and user code to the intended user through the active trusted user channel. The user can approve from any browser on any device. Never send access tokens or credential files.
 
 If credentials live outside the process home, set `FULCRA_HOME` to the home directory that contains the Fulcra CLI credentials. If the CLI binary is not `fulcra-api`, set `FULCRA_CLI_COMMAND`.
 
