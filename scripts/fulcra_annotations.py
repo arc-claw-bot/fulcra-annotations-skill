@@ -18,12 +18,14 @@ import urllib.parse
 import urllib.request
 import uuid
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 
 API_BASE = os.environ.get("FULCRA_API_BASE", "https://api.fulcradynamics.com").rstrip("/")
 DEFAULT_AGENT_SOURCE = os.environ.get("FULCRA_AGENT_SOURCE", "com.openclaw.agent")
-DEFAULT_HOME = os.environ.get("FULCRA_HOME") or os.environ.get("HOME") or str(os.path.expanduser("~"))
+PROCESS_HOME = os.environ.get("HOME") or str(Path.home())
+DEFAULT_HOME = os.environ.get("FULCRA_HOME") or PROCESS_HOME
 
 TYPE_TO_DATA_TYPE = {
     "moment": "MomentAnnotation",
@@ -54,6 +56,9 @@ def access_token() -> str:
 
     env = os.environ.copy()
     env["HOME"] = DEFAULT_HOME
+    if os.environ.get("FULCRA_HOME"):
+        env.setdefault("UV_TOOL_DIR", str(Path(PROCESS_HOME) / ".local" / "share" / "uv" / "tools"))
+        env.setdefault("UV_CACHE_DIR", str(Path(PROCESS_HOME) / ".cache" / "uv"))
 
     command = os.environ.get("FULCRA_CLI_COMMAND", "uv tool run fulcra-api")
     candidates = [[*shlex.split(command), "auth", "print-access-token"]]

@@ -48,6 +48,7 @@ uv tool run fulcra-api auth login
 For remote agents, keep the CLI running, send the printed device authorization URL and code to the intended user through the active trusted user channel, and wait for approval. The user can open the URL from any browser on any device. After approval, verify auth with a non-token command such as `uv tool run fulcra-api user-info`; do not paste tokens into chat.
 
 Set `FULCRA_HOME=/path/to/home` if credentials are not under the process `HOME`.
+When `FULCRA_HOME` is set, the script preserves uv's tool cache under the process home unless `UV_TOOL_DIR` or `UV_CACHE_DIR` is already configured.
 
 ## Common Commands
 
