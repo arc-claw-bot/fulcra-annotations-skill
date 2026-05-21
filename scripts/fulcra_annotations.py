@@ -55,7 +55,7 @@ def access_token() -> str:
     env = os.environ.copy()
     env["HOME"] = DEFAULT_HOME
 
-    command = os.environ.get("FULCRA_CLI_COMMAND", "fulcra-api")
+    command = os.environ.get("FULCRA_CLI_COMMAND", "uv tool run fulcra-api")
     candidates = [[*shlex.split(command), "auth", "print-access-token"]]
     for cmd in candidates:
         try:
