@@ -37,17 +37,18 @@ Agents should use the bundled script first. Do not hand-write curl calls unless 
 The script gets auth in this order:
 
 1. `FULCRA_ACCESS_TOKEN` environment variable.
-2. `fulcra-api auth print-access-token` from PATH, or the command in `FULCRA_CLI_COMMAND`.
+2. `uv tool run fulcra-api auth print-access-token`, or the command in `FULCRA_CLI_COMMAND`.
 
 Authenticate first:
 
 ```bash
-fulcra-api auth login
+uv tool run fulcra-api auth login
 ```
 
-For remote agents, keep the CLI running, send the printed device authorization URL and code to the intended user through the active trusted user channel, and wait for approval. The user can open the URL from any browser on any device. After approval, verify auth with a non-token command such as `fulcra-api user-info`; do not paste tokens into chat.
+For remote agents, keep the CLI running, send the printed device authorization URL and code to the intended user through the active trusted user channel, and wait for approval. The user can open the URL from any browser on any device. After approval, verify auth with a non-token command such as `uv tool run fulcra-api user-info`; do not paste tokens into chat.
 
 Set `FULCRA_HOME=/path/to/home` if credentials are not under the process `HOME`.
+When `FULCRA_HOME` is set, the script preserves uv's tool cache under the process home unless `UV_TOOL_DIR` or `UV_CACHE_DIR` is already configured.
 
 ## Common Commands
 
