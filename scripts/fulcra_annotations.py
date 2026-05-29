@@ -23,7 +23,7 @@ from typing import Any
 
 
 API_BASE = os.environ.get("FULCRA_API_BASE", "https://api.fulcradynamics.com").rstrip("/")
-DEFAULT_AGENT_SOURCE = os.environ.get("FULCRA_AGENT_SOURCE", "com.openclaw.agent")
+DEFAULT_AGENT_SOURCE = os.environ.get("FULCRA_AGENT_SOURCE", "com.fulcra.agent")
 PROCESS_HOME = os.environ.get("HOME") or str(Path.home())
 DEFAULT_HOME = os.environ.get("FULCRA_HOME") or PROCESS_HOME
 
@@ -49,7 +49,7 @@ def fail(message: str, code: int = 1) -> None:
     raise SystemExit(code)
 
 
-def access_token() -> str:
+def bearer_value() -> str:
     env_token = os.environ.get("FULCRA_ACCESS_TOKEN")
     if env_token:
         return env_token.strip()
@@ -75,12 +75,12 @@ def access_token() -> str:
             continue
         if token:
             return token
-    fail("No Fulcra token available. Set FULCRA_ACCESS_TOKEN or run Fulcra CLI auth login.")
+    fail("No Fulcra auth available. Set FULCRA_ACCESS_TOKEN or run Fulcra CLI auth login.")
 
 
 def request(method: str, path: str, payload: Any | None = None) -> tuple[int, str]:
     data = None
-    headers = {"Authorization": f"Bearer {access_token()}"}
+    headers = {"Authorization": f"Bearer {bearer_value()}"}
     if payload is not None:
         data = json.dumps(payload).encode()
         headers["Content-Type"] = "application/json"
