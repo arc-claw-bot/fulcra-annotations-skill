@@ -7,7 +7,7 @@ Fulcra gives agents and their humans scoped, secure access to read and write rea
 ## What It Does
 
 - Lists existing Fulcra annotation definitions.
-- Creates annotation definitions, including definition-level tags.
+- Creates, updates, and deletes annotation definitions, including definition-level tags.
 - Records annotation events, including historical timestamps.
 - Supports moment, boolean, numeric, and scale annotations.
 - Supports record-level tags for individual logged events.
@@ -16,12 +16,14 @@ Fulcra gives agents and their humans scoped, secure access to read and write rea
 ## Requirements
 
 - Python 3.11 or newer.
-- Fulcra API access for the target user.
+- Authenticated Fulcra account for the target user. No API key is required.
 - `uv tool run fulcra-api auth login` completed, or `FULCRA_ACCESS_TOKEN` supplied by a trusted secret manager.
 
-For remote agents, run `uv tool run fulcra-api auth login` on the agent host, keep it polling, and send only the printed device authorization URL and user code to the intended user through the active trusted user channel. The user can approve from any browser on any device. Never send access tokens or credential files.
+Fulcra accounts can be created through the CLI auth flow and include 5 GB of storage free forever. Users who want biometrics, location, calendar, and other mobile context can install the Context iOS app and sign in with the same account; the app uses the same free storage and is no longer subscription gated. Android is coming soon.
 
-If credentials live outside the process home, set `FULCRA_HOME` to the home directory that contains the Fulcra CLI credentials. The helper keeps uv's tool cache pointed at the process home unless `UV_TOOL_DIR` or `UV_CACHE_DIR` is already set. Set `FULCRA_CLI_COMMAND` only when you need to override the default `uv tool run fulcra-api` command.
+For remote agents, run `uv tool run fulcra-api auth login` on the agent host, keep it polling, and surface only the printed device authorization URL and user code to the intended user in chat through the active trusted user channel. The user can approve from any browser on any device. Never send access tokens or credential files.
+
+If credentials live outside the process home, set `FULCRA_HOME` to the home directory that contains the Fulcra CLI credentials. Set `FULCRA_CLI_COMMAND` only when you need to override the default `uv tool run fulcra-api` command.
 
 ## Quick Start
 
@@ -61,6 +63,55 @@ python3 skills/fulcra-annotations/scripts/fulcra_annotations.py record \
 
 The script returns JSON. Treat the write as confirmed only when `verified_matches` is at least `1`.
 
+## First-Run Flow
+
+For a new user, keep the first annotation loop tight:
+
+1. Offer 2-3 concrete tracking ideas instead of asking an open-ended question.
+2. Check auth with `uv tool run fulcra-api user-info`; if needed, run `uv tool run fulcra-api auth login` and send only the device URL/code.
+3. Create 1-3 definitions, saving the returned `annotation.id`, `source_id`, and type in your working notes.
+4. Ask one direct question, record the first value with `record --id ...`, and verify `verified_matches >= 1`.
+5. Hand off with the definitions created, the timestamp written, and a concrete next step such as mobile logging, Context Web, another annotation, or a small dashboard.
+
+For public demos or group chats, use synthetic values unless the user explicitly approves sharing real Fulcra records.
+
+Create a numeric count annotation:
+
+```bash
+python3 skills/fulcra-annotations/scripts/fulcra_annotations.py create \
+  --type numeric \
+  --name "Coffee Count" \
+  --description "Number of coffees consumed today" \
+  --measurement-type count \
+  --tag health \
+  --tag intake
+```
+
+For specialized measurement units, inspect the live schema through the bundled helper before adding script support:
+
+```bash
+python3 skills/fulcra-annotations/scripts/fulcra_annotations.py measurement-schema
+```
+
+Use `measurement-schema --raw` only for local debugging. Do not paste raw private account output into chat.
+
+Update or delete definitions only after user approval:
+
+```bash
+python3 skills/fulcra-annotations/scripts/fulcra_annotations.py update \
+  --id "<annotation-id>" \
+  --description "Updated description" \
+  --tag health \
+  --tag workflow
+
+python3 skills/fulcra-annotations/scripts/fulcra_annotations.py delete \
+  --id "<annotation-id>"
+```
+
+## Idempotent Pipelines
+
+For recurring imports or backfills, keep a local ledger keyed by stable source facts. Write unseen records once, retry pending/failed records, and mark a record verified only after Fulcra readback. Keep dedupe keys out of visible notes; store them in local state, metadata, or source bookkeeping.
+
 ## Tags
 
 Tags can apply to either the definition or an individual record.
@@ -85,10 +136,10 @@ python3 skills/fulcra-annotations/scripts/fulcra_annotations.py record \
   --tag travel
 ```
 
-Use short, reusable, lowercase tags such as `health`, `agent`, `research`, `new-task`, `manual-test`, or `backfill`. Do not put timestamps, private notes, or one-off sentences in tags.
+Use short, reusable, lowercase tags such as `health`, `agent`, `research`, `new-task`, `manual-test`, or `backfill`. Tags should be filter dimensions. For geography, prefer actual place tags such as `town-springfield`, `village-riverside`, `neighborhood-downtown`, or `place-main-campus`, not abstract scope labels. Do not put timestamps, private notes, dedupe keys, or one-off sentences in tags.
 
 ## Safety
 
-- Do not print access tokens, Magic Links, or private Fulcra records in chat or logs.
+- Do not print access tokens, direct capability URLs, or private Fulcra records in chat or logs.
 - Use dry-run mode before risky writes.
 - Ask before deleting or changing an existing annotation definition.
